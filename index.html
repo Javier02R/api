@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Usuarios</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .container { width: 50%; margin: auto; text-align: center; }
+    .user-card { border: 1px solid #ddd; padding: 10px; margin: 10px; display: inline-block; width: 40%; }
+    .user-card button { margin-top: 10px; width: 100%; }
+    .btn { padding: 10px; color: white; border: none; cursor: pointer; margin-top: 10px; }
+    .btn-primary { background-color: #007bff; }
+    .btn-danger { background-color: #dc3545; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Gestión de Usuarios</h1>
+  
+  <form id="userForm">
+    <label for="name">Nombre</label>
+    <input type="text" id="name" name="name" required><br><br>
+    <label for="email">Correo electrónico</label>
+    <input type="email" id="email" name="email" required><br><br>
+    <label for="password">Contraseña</label>
+    <input type="password" id="password" name="password" required><br><br>
+    <button type="submit" class="btn btn-primary">Usuario POST</button>
+  </form>
+
+  <button onclick="fetchUsers()" class="btn btn-primary">OBTENER usuarios</button>
+  
+  <div id="usersContainer"></div>
+</div>
+
+<script>
+  // Función para obtener y mostrar los usuarios
+  async function fetchUsers() {
+    const response = await fetch('http://localhost:3000/api/users');
+    const users = await response.json();
+    const usersContainer = document.getElementById('usersContainer');
+    usersContainer.innerHTML = ''; // Limpiar el contenido actual
+
+    users.forEach(user => {
+      const userCard = document.createElement('div');
+      userCard.classList.add('user-card');
+      userCard.innerHTML = `
+        <h3>${user.name}</h3>
+        <p>${user.email}</p>
+        <button onclick="deleteUser(${user.id})" class="btn btn-danger">ELIMINAR usuario</button>
+        <button onclick="editUser(${user.id}, '${user.name}', '${user.email}')" class="btn btn-primary">EDITAR Usuario</button>
+      `;
+      usersContainer.appendChild(userCard);
+    });
+  }
+
+  // Función para agregar un usuario
+  async function addUser(e) {
+    e.preventDefault();
+    const formData = new FormData(document.getElementById('userForm'));
+    const data = {};
+    formData.forEach((value, key) => { data[key] = value; });
+
+    await fetch('http://localhost:3000/api/form', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    fetchUsers(); // Actualiza la lista de usuarios
+    document.getElementById('userForm').reset(); // Limpia el formulario
+  }
+
+  // Configura el formulario para agregar un usuario al inicio
+  document.getElementById('userForm').onsubmit = addUser;
+
+  // Función para eliminar un usuario
+  async function deleteUser(id) {
+    await fetch(`http://localhost:3000/api/user/${id}`, { method: 'DELETE' });
+    fetchUsers(); // Actualiza la lista de usuarios
+  }
+
+  // Función para editar un usuario
+  function editUser(id, name, email) {
+    document.getElementById('name').value = name;
+    document.getElementById('email').value = email;
+    
+    // Cambia el comportamiento del formulario para actualizar el usuario
+    document.getElementById('userForm').onsubmit = async function (e) {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+      };
+      await fetch(`http://localhost:3000/api/user/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      fetchUsers(); // Actualiza la lista de usuarios
+      document.getElementById('userForm').reset(); // Limpia el formulario
+      document.getElementById('userForm').onsubmit = addUser; // Restaura la funcionalidad original
+    };
+  }
+
+</script>
+
+</body>
+</html>

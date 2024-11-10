@@ -5,7 +5,10 @@
   "type": "commonjs",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "add-user": "node user-cli.js add",
+    "delete-user": "node user-cli.js delete",
+    "edit-user": "node user-cli.js edit"
   },
   "author": "\"ALBIS CORONADO\"",
   "license": "MIT",
